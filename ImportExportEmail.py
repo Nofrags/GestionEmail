@@ -247,11 +247,11 @@ def check_colonne_minimale_csv(liste_colonne_csv):
 
 def extract_info_csv(file_name):
     """Extraction des infos dans un fichier formater en CSV.
-    Le séparateur utiliser est ';'.
-    Colonne 1 : Nom
-    Colonne 2 : Prénom
-    Colonne 3 : Liste nom nom Groupe séparé par des ','
-    Colonne Suivante : Email
+    Le séparateur utiliser est ';' ou ','.
+    Colonnes obligatoires : "Nom", "Groupe" et "Adresse mail"
+    Colonnes traitées facultatives : "Prénom", Téléphone", "Entreprise", "Adresse postale", "Contact"
+    Colonne Groupe : Liste nom Groupe séparé par des ',' et encadré par des '"' si plusieurs
+    Colonne Adresse mail : Liste adresse mail séparées par des ',' et encadrées par des '"' si plusieurs
     """
     info_ligne = []
     b_premiere_ligne = True
