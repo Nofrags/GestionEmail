@@ -2,6 +2,7 @@
 
 import codecs
 import os
+from os import path as os_path
 import sys
 import re
 from tkinter.filedialog import askopenfilename, asksaveasfilename
@@ -427,8 +428,8 @@ def calcul_col_google(google_colonnes):
         nb_col_tel += 1
     # Ajout colonne mail si nécessaire
     while nb_mail_max > nb_col_mail:
-        google_colonnes.insert(num_col_mail_max+1, "Phone {0} - Type".format(nb_col_mail))
-        google_colonnes.insert(num_col_mail_max+2, "Phone {0} - Value".format(nb_col_mail))
+        google_colonnes.insert(num_col_mail_max+1, "E-mail {0} - Type".format(nb_col_mail))
+        google_colonnes.insert(num_col_mail_max+2, "E-mail {0} - Value".format(nb_col_mail))
         num_col_mail_max += 2
         nb_col_mail += 1
     return google_colonnes
@@ -643,8 +644,9 @@ def main(google_colonnes):
         nom_fichier_courant = FILE_SAVE_LOCAL
     else:
         # Récupération des noms de colonnes google
-        google_colonnes = extract_info_contact('google.csv', google_colonnes, TYPE_FICHIER_GOOGLE)
-        nom_fichier_courant = "google.csv"
+        localPath = os_path.abspath(os_path.split(__file__)[0])
+        nom_fichier_courant = localPath + "/google.csv"
+        google_colonnes = extract_info_contact(nom_fichier_courant, google_colonnes, TYPE_FICHIER_GOOGLE)
     if len(sys.argv) < 2:
         while sortir == 0:
             cls()
