@@ -559,7 +559,6 @@ class Contact:
     def export_contact_google(self):
         """Retourne un contact formaté pour GOOGLE"""
         liste_info = []
-        nb_email = len(self.email)
         nb_phone = len(self.num_tel)
         idx_email_google = 0
         idx_phone_contact = 0
