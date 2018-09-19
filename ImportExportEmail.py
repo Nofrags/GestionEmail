@@ -158,8 +158,14 @@ def cls():
 
 def print_contact():
     """Affichage des contacts en mémoire"""
-    for contact in L_CONTACT:
-        print(contact.export_contact().replace(r'\n', '\r\n'))
+    strContact = ""
+    for i in range(0,len(L_CONTACT)):
+        strContact = L_CONTACT[i].export_contact().replace(r'\n', '\r\n')
+        if "" == strContact:
+            cls()
+            i = 0
+            strContact = L_CONTACT[i].export_contact().replace(r'\n', '\r\n')
+        print(strContact)
     pause_menu()
 
 def extract_info_google(file_name, google_colonnes):
@@ -424,6 +430,11 @@ def sauvegarde_contact_google(file_name):
             os.remove(file_name)
         else:
             return
+
+    """ Parse une première fois pour ajouter colonne manquante si necessaire """
+    for contact in L_CONTACT:
+        ligne = contact.export_contact()
+
     fichier = codecs.open(file_name, 'w', 'utf16')
     fichier.write(",".join(L_COL_EXP_GOOGLE)+'\r\n')
     for contact in L_CONTACT:
@@ -552,6 +563,7 @@ class Contact:
         nb_phone = len(self.num_tel)
         idx_email_google = 0
         idx_phone_contact = 0
+        is_ajoutcolonne = 0
         regexp_email = re.compile(r'E-mail \d* - Value')
         regexp_phone = re.compile(r'Phone \d* - Value')
         for i in range(0, len(L_COL_EXP_GOOGLE)):
@@ -559,22 +571,23 @@ class Contact:
             liste_info.append("")
             liste_info[i] = ""
             if regexp_email.search(nom_colonne) and idx_email_google < len(self.email):
-                """ TODO Vérifier si num email == idx_email_contact-1 """
-                liste_info[i] = self.email[idx_email_google]
-                idx_email_google += 1
+                if len(self.email) > 1:
+                    liste_info[i] = "\""
+                    liste_info[i] += ">, <".join(self.email)
+                    liste_info[i] += "\""
+                else:
+                    liste_info[i] = self.email[0]
             if regexp_phone.search(nom_colonne) and idx_phone_contact < len(self.num_tel):
                 liste_info[i] = self.num_tel[idx_phone_contact]
                 idx_phone_contact += 1
-        if nb_email > idx_email_google:
-            for i in range(0, nb_email-idx_email_google):
-                liste_info.append(self.email[idx_email_google+i])
-                L_COL_EXP_GOOGLE.append("E-mail "+str(idx_email_google+i)+" - Type")
-                L_COL_EXP_GOOGLE.append("E-mail "+str(idx_email_google+i)+" - Value")
         if nb_phone > idx_phone_contact:
             for i in range(0, nb_phone-idx_phone_contact):
                 liste_info.append(self.num_tel[idx_phone_contact+i])
                 L_COL_EXP_GOOGLE.append("Phone "+str(idx_phone_contact+i)+" - Type")
                 L_COL_EXP_GOOGLE.append("Phone "+str(idx_phone_contact+i)+" - Value")
+                is_ajoutcolonne = 1
+        if is_ajoutcolonne == 1:
+            return ""
         liste_info[L_COL_EXP_GOOGLE.index(NAME_COLONNE_NAME)] = self.prenom + " " + self.nom
         liste_info[L_COL_EXP_GOOGLE.index(NAME_COLONNE_FAMILY_NAME)] = self.nom
         liste_info[L_COL_EXP_GOOGLE.index(NAME_COLONNE_GIVEN_NAME)] = self.prenom
