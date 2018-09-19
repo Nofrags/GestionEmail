@@ -325,7 +325,7 @@ def extract_info_csv(file_name):
                     return
                 b_premiere_ligne = False
                 if not check_colonne_minimale_csv(liste_colonne):
-                    print("Manque colonne dans fichier csv : " + file_name)
+                    print("Manque colonne dans fichier csv : " + file_name + ". Colonnes présente : "+ ",".join(liste_colonne))
                     return
         fichier.close()
 
