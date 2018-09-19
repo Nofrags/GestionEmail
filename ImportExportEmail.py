@@ -239,6 +239,12 @@ def extract_tel(google_colonnes, info_ligne):
         num_col += 1
     return liste_tel
 
+def check_colonne_minimale_csv(liste_colonne_csv):
+    if (NAME_COLUMN_GROUPE_CSV not in liste_colonne_csv) or (NAME_COLUMN_ADRESSE_MAIL_CSV not in liste_colonne_csv) \
+    or (NAME_COLUMN_NOM_CSV not in liste_colonne_csv):
+        return False
+    return True
+
 def extract_info_csv(file_name):
     """Extraction des infos dans un fichier formater en CSV.
     Le séparateur utiliser est ';'.
@@ -310,8 +316,17 @@ def extract_info_csv(file_name):
                 if '\n' in ligne:
                     ligne = ligne.replace('\n', '')
                 ligne = ligne.upper()
-                liste_colonne = ligne.split(';')
+                if ';' in ligne:
+                    liste_colonne = ligne.split(';')
+                elif ',' in ligne:
+                    liste_colonne = ligne.split(',')
+                else:
+                    print("Format de la liste des colonnes invalide. Séparateur ',' ou ';'.")
+                    return
                 b_premiere_ligne = False
+                if not check_colonne_minimale_csv(liste_colonne):
+                    print("Manque colonne dans fichier csv : " + file_name)
+                    return
         fichier.close()
 
 def extract_info_ligne_samsung(info_ligne, liste_colonne_samsung):
