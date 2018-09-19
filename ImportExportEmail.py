@@ -244,6 +244,7 @@ def extract_info_csv(file_name):
     info_ligne = []
     b_premiere_ligne = True
     liste_colonne = []
+    emails = []
     with codecs.open(file_name, "r", "utf16") as fichier:
         lignes = fichier.readlines()
         for ligne in lignes:
@@ -278,7 +279,12 @@ def extract_info_csv(file_name):
                                 liste_groupe.append(groupe)
                     # Récupération des e-mail
                     if NAME_COLUMN_ADRESSE_MAIL_CSV.upper() in liste_colonne[i]:
-                        liste_email.append(info_ligne[i])
+                        if ',' in info_ligne[i]:
+                            emails = info_ligne[i].strip().split(",")
+                            for email in emails:
+                                liste_email.append(email)
+                        else: 
+                            liste_email.append(info_ligne[i])
                     # Récupération des téléphones
                     if NAME_COLUMN_TELEPHONE_CSV.upper() in liste_colonne[i]:
                         liste_telephone.append(info_ligne[i])
@@ -553,6 +559,7 @@ class Contact:
             liste_info.append("")
             liste_info[i] = ""
             if regexp_email.search(nom_colonne) and idx_email_google < len(self.email):
+                """ TODO Vérifier si num email == idx_email_contact-1 """
                 liste_info[i] = self.email[idx_email_google]
                 idx_email_google += 1
             if regexp_phone.search(nom_colonne) and idx_phone_contact < len(self.num_tel):
@@ -575,8 +582,14 @@ class Contact:
             print('Ajout <'+GROUPE_DEFAULT_NAME+"> not in <"+str(self.groupe)+">")
             self.groupe.append(GROUPE_DEFAULT_NAME)
         liste_info[L_COL_EXP_GOOGLE.index(NAME_COLONNE_GROUP)] = " ::: ".join(self.groupe)
+        if NAME_COLONNE_ORGANIZATION_NAME not in L_COL_EXP_GOOGLE:
+            L_COL_EXP_GOOGLE.append(NAME_COLONNE_ORGANIZATION_NAME)
         liste_info[L_COL_EXP_GOOGLE.index(NAME_COLONNE_ORGANIZATION_NAME)] = self.entreprise
+        if NAME_COLONNE_ADRESS_FORMATTED not in L_COL_EXP_GOOGLE:
+            L_COL_EXP_GOOGLE.append(NAME_COLONNE_ADRESS_FORMATTED)
         liste_info[L_COL_EXP_GOOGLE.index(NAME_COLONNE_ADRESS_FORMATTED)] = self.adresse
+        if NAME_COLONNE_ADRESS_STREET not in L_COL_EXP_GOOGLE:
+            L_COL_EXP_GOOGLE.append(NAME_COLONNE_ADRESS_STREET)
         liste_info[L_COL_EXP_GOOGLE.index(NAME_COLONNE_ADRESS_STREET)] = self.adresse
         return ",".join(liste_info)
 
