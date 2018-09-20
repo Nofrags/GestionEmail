@@ -6,6 +6,7 @@ from os import path as os_path
 import sys
 import re
 from tkinter.filedialog import askopenfilename, asksaveasfilename
+import subprocess
 
 GROUPE_DEFAULT_NAME = "* My Contacts"
 
@@ -45,13 +46,16 @@ L_CONTACT = []
 TYPE_ARG_INPUT_FILE = 'INPUT_FILE'
 L_ARG_INPUT_FILE = ['-i', '--InputFile']
 TYPE_ARG_INPUT_TYPE = 'INPUT_TYPE'
-L_ARG_INPUT_TYPE = ['-t', '--InputType']
+L_ARG_INPUT_TYPE = ['-it', '--InputType']
 TYPE_ARG_OUTPUT_FILE = 'OUTPUT_FILE'
 L_ARG_OUTPUT_FILE = ['-o', '--OutputFile']
 TYPE_ARG_OUTPUT_TYPE = 'OUTPUT_TYPE'
 L_ARG_OUTPUT_TYPE = ['-ot', '--OutputType']
+TYPE_ARG_HELP = 'HELP'
+L_ARG_HELP = ['-h', '--help']
 MAP_ARG_APPLI = {TYPE_ARG_INPUT_FILE: L_ARG_INPUT_FILE, TYPE_ARG_INPUT_TYPE: L_ARG_INPUT_TYPE,
-TYPE_ARG_OUTPUT_FILE: L_ARG_OUTPUT_FILE, TYPE_ARG_OUTPUT_TYPE: L_ARG_OUTPUT_TYPE}
+TYPE_ARG_OUTPUT_FILE: L_ARG_OUTPUT_FILE, TYPE_ARG_OUTPUT_TYPE: L_ARG_OUTPUT_TYPE,
+TYPE_ARG_HELP: L_ARG_HELP}
 
 def menu_modification_groupe(contact):
     """Modification du(des) groupe(s) du contact"""
@@ -643,6 +647,16 @@ class Contact:
             print("Type export <"+str(type_export)+"> non géré.")
         return s_result
 
+def print_usage(erreur=""):
+    print("\n GestionEmail \n\n  Permet de convertir un fichier email dans un autre format pour l'import dans Google ou pour les GSM Samsung.\n\n   Options disponibles :"+
+          "\n\n\t-h, --help : Affichage de ce message"+
+          "\n\n\t-i, --InputFile : Chemin et nom du fichier à transformer"+
+          "\n\n\t-it, --InputType : Type de fichier à transformer dans " + str(LISTE_TYPE_FICHIER) +
+          "\n\n\t-o, --OutputFile : Chemin et nom du fichier générer. Par défaut " + FILE_SAVE_LOCAL +
+          "\n\n\t-ot, --OutputType : Type de fichier à générer dans " + str(LISTE_TYPE_FICHIER))
+    if "" != erreur:
+        print("\n\n  Erreur : '"+erreur+"'")
+
 def main(argv, google_colonnes):
     """Gestion des contacts pour import dans Gmail"""
     sortir = 0
@@ -702,19 +716,20 @@ def main(argv, google_colonnes):
         map_argument = {}
         for type_arg in MAP_ARG_APPLI.keys():
             for option in MAP_ARG_APPLI[type_arg]:
-                if option in argv and len(argv) > argv.index(option):
+                if option in argv and len(argv) > argv.index(option) +1:
+                    print(str(argv) + " nb arg " + str(len(argv)) + " idx " + str(argv.index(option)))
                     map_argument[type_arg] = argv[argv.index(option)+1]
         if (TYPE_ARG_INPUT_TYPE in map_argument.keys() and TYPE_ARG_INPUT_FILE in map_argument.keys()
         and TYPE_ARG_OUTPUT_TYPE in map_argument.keys() ) :
             fileOutputName = ""
             if map_argument[TYPE_ARG_INPUT_TYPE] not in LISTE_TYPE_FICHIER:
-                print("Le type de fichier à importer '" + map_argument[TYPE_ARG_INPUT_TYPE] + "' n'est pas correct.")
+                print_usage("Le type de fichier à importer '" + map_argument[TYPE_ARG_INPUT_TYPE] + "' n'est pas correct.")
                 exit(-1)
             if map_argument[TYPE_ARG_OUTPUT_TYPE] not in LISTE_TYPE_FICHIER:
-                print("Le type de fichier à générer '" + map_argument[TYPE_ARG_OUTPUT_TYPE] + "' n'est pas correct.")
+                print_usage("Le type de fichier à générer '" + map_argument[TYPE_ARG_OUTPUT_TYPE] + "' n'est pas correct.")
                 exit(-1)
             if not os.path.isfile(map_argument[TYPE_ARG_INPUT_FILE]):
-                print("Le fichier '" + map_argument[TYPE_ARG_INPUT_FILE] + "' n'existe pas. Import impossible.")
+                print_usage("Le fichier '" + map_argument[TYPE_ARG_INPUT_FILE] + "' n'existe pas. Import impossible.")
                 exit(-2)
             if not os.path.isdir(os.path.dirname(map_argument[TYPE_ARG_OUTPUT_FILE])):
                 print("Le fichier '" + map_argument[TYPE_ARG_OUTPUT_FILE] + "' n'existe pas. Utilisation du fichier par défaut : "+FILE_SAVE_LOCAL+".")
@@ -723,8 +738,10 @@ def main(argv, google_colonnes):
                 fileOutputName = map_argument[TYPE_ARG_OUTPUT_FILE]
             google_colonnes = extract_info_contact(map_argument[TYPE_ARG_INPUT_FILE], google_colonnes, map_argument[TYPE_ARG_INPUT_TYPE])
             sauvegarde_contact(map_argument[TYPE_ARG_OUTPUT_TYPE], fileOutputName, True)
+        elif TYPE_ARG_HELP:
+            print_usage()
         else:
-            print("Erreur argument:" + str(argv) + " argumment présent : " + str(map_argument))
+            print_usage("Erreur argument:" + str(argv) + " argumment présent : " + str(map_argument))
 
 if __name__ == '__main__':
     main(sys.argv[1:], L_COL_EXP_GOOGLE)
