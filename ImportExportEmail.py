@@ -32,6 +32,7 @@ NAME_COLUMN_CONTACT_CSV = "Contact"
 TYPE_FICHIER_GOOGLE = "GOOGLE"
 TYPE_FICHIER_SAMSUNG = "SAMSUNG"
 TYPE_FICHIER_CSV = "CSV"
+LISTE_TYPE_FICHIER = [TYPE_FICHIER_GOOGLE, TYPE_FICHIER_SAMSUNG, TYPE_FICHIER_CSV]
 
 FILE_SAVE_LOCAL = "ListingGestionEmail.csv"
 
@@ -40,6 +41,17 @@ L_COL_EXP_GOOGLE = [NAME_COLONNE_NAME
                     , NAME_COLONNE_FAMILY_NAME
                     , NAME_COLONNE_GROUP]
 L_CONTACT = []
+
+TYPE_ARG_INPUT_FILE = 'INPUT_FILE'
+L_ARG_INPUT_FILE = ['-i', '--InputFile']
+TYPE_ARG_INPUT_TYPE = 'INPUT_TYPE'
+L_ARG_INPUT_TYPE = ['-t', '--InputType']
+TYPE_ARG_OUTPUT_FILE = 'OUTPUT_FILE'
+L_ARG_OUTPUT_FILE = ['-o', '--OutputFile']
+TYPE_ARG_OUTPUT_TYPE = 'OUTPUT_TYPE'
+L_ARG_OUTPUT_TYPE = ['-ot', '--OutputType']
+MAP_ARG_APPLI = {TYPE_ARG_INPUT_FILE: L_ARG_INPUT_FILE, TYPE_ARG_INPUT_TYPE: L_ARG_INPUT_TYPE,
+TYPE_ARG_OUTPUT_FILE: L_ARG_OUTPUT_FILE, TYPE_ARG_OUTPUT_TYPE: L_ARG_OUTPUT_TYPE}
 
 def menu_modification_groupe(contact):
     """Modification du(des) groupe(s) du contact"""
@@ -241,10 +253,8 @@ def extract_tel(google_colonnes, info_ligne):
     return liste_tel
 
 def check_colonne_minimale_csv(liste_colonne_csv):
-    if (NAME_COLUMN_GROUPE_CSV not in liste_colonne_csv) or (NAME_COLUMN_ADRESSE_MAIL_CSV not in liste_colonne_csv) \
-    or (NAME_COLUMN_NOM_CSV not in liste_colonne_csv):
-        return False
-    return True
+    return ((str.upper(NAME_COLUMN_GROUPE_CSV) in liste_colonne_csv) and (str.upper(NAME_COLUMN_ADRESSE_MAIL_CSV) in liste_colonne_csv)
+    and (str.upper(NAME_COLUMN_NOM_CSV) in liste_colonne_csv))
 
 def extract_info_csv(file_name):
     """Extraction des infos dans un fichier formater en CSV.
@@ -258,6 +268,7 @@ def extract_info_csv(file_name):
     b_premiere_ligne = True
     liste_colonne = []
     emails = []
+    
     with codecs.open(file_name, "r", "utf16") as fichier:
         lignes = fichier.readlines()
         for ligne in lignes:
@@ -323,10 +334,12 @@ def extract_info_csv(file_name):
                     liste_colonne = ligne.split(',')
                 else:
                     print("Format de la liste des colonnes invalide. Séparateur ',' ou ';'.")
+                    pause_menu()
                     return
                 b_premiere_ligne = False
                 if not check_colonne_minimale_csv(liste_colonne):
                     print("Manque colonne dans fichier csv : " + file_name + ". Colonnes présente : "+ ",".join(liste_colonne))
+                    pause_menu()
                     return
         fichier.close()
 
@@ -401,22 +414,13 @@ def extract_info_contact(file_name, google_colonnes, type_fichier='GOOGLE'):
 def calcul_col_google(google_colonnes):
     """ Recalcul les colonne google si pas assez pour les données des contacts """
     nb_tel_max = 0
-    nb_mail_max = 0
     for contact in L_CONTACT:
-        if len(contact.email) > nb_mail_max:
-            nb_mail_max = len(contact.email)
         if len(contact.num_tel) > nb_tel_max:
             nb_tel_max = len(contact.num_tel)
-    nb_col_mail = 0
-    nb_col_tel = 0
-    num_col_mail_max = 0
+    nb_col_tel = 1
     num_col_tel_max = 0
-    reg_mail = re.compile(r'E-mail \d* - Value')
     reg_phone = re.compile(r'Phone \d* - Value')
     for nom_col in google_colonnes:
-        if reg_mail.search(nom_col):
-            nb_col_mail += 1
-            num_col_mail_max = google_colonnes.index(nom_col)
         if reg_phone.search(nom_col):
             nb_col_tel += 1
             num_col_tel_max = google_colonnes.index(nom_col)
@@ -426,26 +430,23 @@ def calcul_col_google(google_colonnes):
         google_colonnes.insert(num_col_tel_max+2, "Phone {0} - Value".format(nb_col_tel))
         num_col_tel_max += 2
         nb_col_tel += 1
-    # Ajout colonne mail si nécessaire
-    while nb_mail_max > nb_col_mail:
-        google_colonnes.insert(num_col_mail_max+1, "E-mail {0} - Type".format(nb_col_mail))
-        google_colonnes.insert(num_col_mail_max+2, "E-mail {0} - Value".format(nb_col_mail))
-        num_col_mail_max += 2
-        nb_col_mail += 1
     return google_colonnes
 
-def sauvegarde_contact_google(file_name):
+def sauvegarde_contact_google(file_name, forceSave):
     """Sauvegarde des contacts dans le fichier de GOOGLE"""
+    deleteFile = forceSave
     if file_name == "":
         input("Veuillez saisir un nom de fichier non vide.")
         return
-    if os.path.exists(file_name):
+    if os.path.exists(file_name) and not forceSave:
         reponse = input("Le fichier <"+file_name+
                         "> existe. Voulez-vous l'écraser ? (O)ui / (N)on.\n")
         if reponse.upper() == "O":
-            os.remove(file_name)
+            deleteFile = True
         else:
             return
+    if deleteFile and os.path.exists(file_name):
+        os.remove(file_name)
 
     """ Parse une première fois pour ajouter colonne manquante si necessaire """
     for contact in L_CONTACT:
@@ -457,6 +458,8 @@ def sauvegarde_contact_google(file_name):
         ligne = contact.export_contact()
         fichier.write(ligne+'\r\n')
     fichier.close()
+    if forceSave:
+        print("Export de '"+str(len(L_CONTACT))+"' dans le fichier '"+file_name+"' réussi.")
 
 def menu_modifier_type_fichier(type_fichier_courant):
     """Menu pour modification du type de fichier"""
@@ -491,21 +494,26 @@ def menu_modifier_type_fichier(type_fichier_courant):
 
     return type_fichier_courant
 
-def sauvegarde_contact(type_fichier_courant=TYPE_FICHIER_GOOGLE, file_name=FILE_SAVE_LOCAL):
-    """Sauvegarde des contacts dans un fichier"""
+def sauvegarde_contact(type_fichier_courant=TYPE_FICHIER_GOOGLE, file_name=FILE_SAVE_LOCAL, forceSave=False):
+    """Sauvegarde des contacts dans un fichier
+    type_fichier_courant : type de fichier courant
+    file_name : chemin et nom de fichier de sortie"""
     cls()
     sortir = 0
     while sortir == 0:
         cls()
-        print(" :: Sauvegarde des contacts ::")
-        print(" Fichier destination : " + file_name)
-        print(" Type fichier : " + type_fichier_courant)
-        print("Liste commande :")
-        print(" 1) Saisir nom fichier.")
-        print(" 2) Sauvegarder.")
-        print("")
-        print(" 0) sortir du programme.")
-        commande_saisie = input("Saisir votre commande...\n")
+        if not forceSave:
+            print(" :: Sauvegarde des contacts ::")
+            print(" Fichier destination : " + file_name)
+            print(" Type fichier : " + type_fichier_courant)
+            print("Liste commande :")
+            print(" 1) Saisir nom fichier.")
+            print(" 2) Sauvegarder.")
+            print("")
+            print(" 0) sortir du programme.")
+            commande_saisie = input("Saisir votre commande...\n")
+        else:
+            commande_saisie = "2"
 
         if commande_saisie == "0":
             sortir = 1
@@ -514,7 +522,7 @@ def sauvegarde_contact(type_fichier_courant=TYPE_FICHIER_GOOGLE, file_name=FILE_
                                           filetypes=[('csv files', '.csv')])
         elif commande_saisie == "2":
             if type_fichier_courant == TYPE_FICHIER_GOOGLE:
-                sauvegarde_contact_google(file_name)
+                sauvegarde_contact_google(file_name, forceSave)
             elif type_fichier_courant == TYPE_FICHIER_SAMSUNG:
                 print("TODO Sauvegarde fichier Samsung")
                 pause_menu()
@@ -524,6 +532,8 @@ def sauvegarde_contact(type_fichier_courant=TYPE_FICHIER_GOOGLE, file_name=FILE_
             else:
                 print("Type export <"+type_fichier_courant+"> non géré.")
                 pause_menu()
+            if forceSave:
+                sortir = 1
         else:
             print("Commande <"+commande_saisie+"> non gérée.")
 
@@ -607,7 +617,6 @@ class Contact:
         liste_info[L_COL_EXP_GOOGLE.index(NAME_COLONNE_FAMILY_NAME)] = self.nom
         liste_info[L_COL_EXP_GOOGLE.index(NAME_COLONNE_GIVEN_NAME)] = self.prenom
         if GROUPE_DEFAULT_NAME not in self.groupe:
-            print('Ajout <'+GROUPE_DEFAULT_NAME+"> not in <"+str(self.groupe)+">")
             self.groupe.append(GROUPE_DEFAULT_NAME)
         liste_info[L_COL_EXP_GOOGLE.index(NAME_COLONNE_GROUP)] = " ::: ".join(self.groupe)
         if NAME_COLONNE_ORGANIZATION_NAME not in L_COL_EXP_GOOGLE:
@@ -634,7 +643,7 @@ class Contact:
             print("Type export <"+str(type_export)+"> non géré.")
         return s_result
 
-def main(google_colonnes):
+def main(argv, google_colonnes):
     """Gestion des contacts pour import dans Gmail"""
     sortir = 0
     type_fichier_courant = TYPE_FICHIER_GOOGLE
@@ -647,7 +656,7 @@ def main(google_colonnes):
         localPath = os_path.abspath(os_path.split(__file__)[0])
         nom_fichier_courant = localPath + "/google.csv"
         google_colonnes = extract_info_contact(nom_fichier_courant, google_colonnes, TYPE_FICHIER_GOOGLE)
-    if len(sys.argv) < 2:
+    if len(argv) < 1:
         while sortir == 0:
             cls()
             print(" :: Gestion des contacts ::")
@@ -689,7 +698,33 @@ def main(google_colonnes):
             elif commande_saisie == "8":
                 L_CONTACT.clear()
     else: # Si argument à la commande
-        print("Argument list :"+str(sys.argv[-1:]))
+        """arg_erreur = 0"""
+        map_argument = {}
+        for type_arg in MAP_ARG_APPLI.keys():
+            for option in MAP_ARG_APPLI[type_arg]:
+                if option in argv and len(argv) > argv.index(option):
+                    map_argument[type_arg] = argv[argv.index(option)+1]
+        if (TYPE_ARG_INPUT_TYPE in map_argument.keys() and TYPE_ARG_INPUT_FILE in map_argument.keys()
+        and TYPE_ARG_OUTPUT_TYPE in map_argument.keys() ) :
+            fileOutputName = ""
+            if map_argument[TYPE_ARG_INPUT_TYPE] not in LISTE_TYPE_FICHIER:
+                print("Le type de fichier à importer '" + map_argument[TYPE_ARG_INPUT_TYPE] + "' n'est pas correct.")
+                exit(-1)
+            if map_argument[TYPE_ARG_OUTPUT_TYPE] not in LISTE_TYPE_FICHIER:
+                print("Le type de fichier à générer '" + map_argument[TYPE_ARG_OUTPUT_TYPE] + "' n'est pas correct.")
+                exit(-1)
+            if not os.path.isfile(map_argument[TYPE_ARG_INPUT_FILE]):
+                print("Le fichier '" + map_argument[TYPE_ARG_INPUT_FILE] + "' n'existe pas. Import impossible.")
+                exit(-2)
+            if not os.path.isdir(os.path.dirname(map_argument[TYPE_ARG_OUTPUT_FILE])):
+                print("Le fichier '" + map_argument[TYPE_ARG_OUTPUT_FILE] + "' n'existe pas. Utilisation du fichier par défaut : "+FILE_SAVE_LOCAL+".")
+                fileOutputName = os.path.dirname(sys.argv[0]) + "/" + FILE_SAVE_LOCAL
+            else:
+                fileOutputName = map_argument[TYPE_ARG_OUTPUT_FILE]
+            google_colonnes = extract_info_contact(map_argument[TYPE_ARG_INPUT_FILE], google_colonnes, map_argument[TYPE_ARG_INPUT_TYPE])
+            sauvegarde_contact(map_argument[TYPE_ARG_OUTPUT_TYPE], fileOutputName, True)
+        else:
+            print("Erreur argument:" + str(argv) + " argumment présent : " + str(map_argument))
 
 if __name__ == '__main__':
-    main(L_COL_EXP_GOOGLE)
+    main(sys.argv[1:], L_COL_EXP_GOOGLE)
