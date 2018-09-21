@@ -367,7 +367,6 @@ def extract_info_ligne_samsung(info_ligne, liste_colonne_samsung):
             nb_telephone += 1
         if reg_nom.search(nom_colonne):
             infos_contact = info_ligne[i].strip().replace('"', '').split(' ')
-    #print('Nom <'+str(infos_contact)+"> tel <"+str(liste_tel)+"> email <"+str(liste_email)+">")
     L_CONTACT.append(Contact(infos=infos_contact,
                              num_tel=liste_tel,
                              email=liste_email))
