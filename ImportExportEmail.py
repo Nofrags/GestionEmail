@@ -665,21 +665,10 @@ def print_usage(erreur=""):
     if "" != erreur:
         print("\n\n  Erreur : '"+erreur+"'")
 
-def main(argv, google_colonnes):
-    """Gestion des contacts pour import dans Gmail"""
+def affiche_menu_principal(nom_fichier_courant, google_colonnes):
     sortir = 0
     type_fichier_courant = TYPE_FICHIER_GOOGLE
-    if os.path.isfile(FILE_SAVE_LOCAL):
-        # Récupération des contacts sauvegardés
-        google_colonnes = extract_info_contact(FILE_SAVE_LOCAL, google_colonnes, TYPE_FICHIER_GOOGLE)
-        nom_fichier_courant = FILE_SAVE_LOCAL
-    else:
-        # Récupération des noms de colonnes google
-        localPath = os_path.abspath(os_path.split(__file__)[0])
-        nom_fichier_courant = localPath + "/google.csv"
-        google_colonnes = extract_info_contact(nom_fichier_courant, google_colonnes, TYPE_FICHIER_GOOGLE)
-    if len(argv) < 1:
-        while sortir == 0:
+    while sortir == 0:
             cls()
             print(" :: Gestion des contacts ::")
             print(" Fichier en cours : " + nom_fichier_courant)
@@ -719,6 +708,20 @@ def main(argv, google_colonnes):
                 type_fichier_courant = menu_modifier_type_fichier(type_fichier_courant)
             elif commande_saisie == "8":
                 L_CONTACT.clear()
+
+def main(argv, google_colonnes):
+    """Gestion des contacts pour import dans Gmail"""
+    if os.path.isfile(FILE_SAVE_LOCAL):
+        # Récupération des contacts sauvegardés
+        google_colonnes = extract_info_contact(FILE_SAVE_LOCAL, google_colonnes, TYPE_FICHIER_GOOGLE)
+        nom_fichier_courant = FILE_SAVE_LOCAL
+    else:
+        # Récupération des noms de colonnes google
+        localPath = os_path.abspath(os_path.split(__file__)[0])
+        nom_fichier_courant = localPath + "/google.csv"
+        google_colonnes = extract_info_contact(nom_fichier_courant, google_colonnes, TYPE_FICHIER_GOOGLE)
+    if len(argv) < 1:
+        affiche_menu_principal(nom_fichier_courant, google_colonnes)
     else: # Si argument à la commande
         """arg_erreur = 0"""
         map_argument = {}
