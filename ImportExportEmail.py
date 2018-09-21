@@ -6,6 +6,7 @@ from os import path as os_path
 import sys
 import re
 from tkinter.filedialog import askopenfilename, asksaveasfilename
+from tkinter import Frame, BOTH, Entry, Button, END, Tk
 import subprocess
 
 GROUPE_DEFAULT_NAME = "* My Contacts"
@@ -43,6 +44,7 @@ L_COL_EXP_GOOGLE = [NAME_COLONNE_NAME
                     , NAME_COLONNE_GROUP]
 L_CONTACT = []
 L_COL_EXP_SAMSUNG = []
+TYPE_FICHIER_SELECTIONNE = TYPE_FICHIER_GOOGLE
 
 NOM_FICHIER_SOURCE = ""
 
@@ -59,6 +61,44 @@ L_ARG_HELP = ['-h', '--help']
 MAP_ARG_APPLI = {TYPE_ARG_INPUT_FILE: L_ARG_INPUT_FILE, TYPE_ARG_INPUT_TYPE: L_ARG_INPUT_TYPE,
 TYPE_ARG_OUTPUT_FILE: L_ARG_OUTPUT_FILE, TYPE_ARG_OUTPUT_TYPE: L_ARG_OUTPUT_TYPE,
 TYPE_ARG_HELP: L_ARG_HELP}
+
+class TkTable(Frame): 
+    def __init__(self, fenetre): 
+        Frame.__init__(self, fenetre) 
+        self.numberLines = len(L_CONTACT)
+        if TYPE_FICHIER_SELECTIONNE == TYPE_FICHIER_GOOGLE:
+            self.numberColumns = len(L_COL_EXP_GOOGLE)
+        elif TYPE_FICHIER_SELECTIONNE == TYPE_FICHIER_SAMSUNG:
+            self.numberColumns = len(L_COL_EXP_SAMSUNG)
+        else:
+            return
+        self.pack(fill=BOTH) 
+        self.data = list() 
+        for i in range(self.numberLines): 
+            line = list() 
+            for j in range(self.numberColumns): 
+                cell = Entry(self) 
+                cell.insert(0, 0) 
+                line.append(cell) 
+                cell.grid(row = i, column = j) 
+            self.data.append(line) 
+  
+        self.results = list() 
+        for i in range(self.numberColumns): 
+            cell = Entry(self) 
+            cell.insert(0, 0) 
+            cell.grid(row = self.numberLines, column = i) 
+            self.results.append(cell) 
+        self.buttonSum =  Button(self, text="somme des colonnes", fg="red", command=self.sumCol) 
+        self.buttonSum.grid(row = self.numberLines, column = self.numberColumns) 
+  
+    def sumCol(self): 
+        for j in range(self.numberColumns): 
+            result = int(0) 
+            for i in range(self.numberLines): 
+                result += int(self.data[i][j].get()) 
+            self.results[j].delete(0, END) 
+            self.results[j].insert(0, result)
 
 def menu_modification_groupe(contact):
     """Modification du(des) groupe(s) du contact"""
@@ -178,6 +218,10 @@ def cls():
 
 def print_contact():
     """Affichage des contacts en mémoire"""
+    fenetre = Tk() 
+    interface = TkTable(fenetre) 
+    interface.mainloop()
+    """
     strContact = ""
     for i in range(0,len(L_CONTACT)):
         strContact = L_CONTACT[i].export_contact().replace(r'\n', '\r\n')
@@ -186,6 +230,7 @@ def print_contact():
             i = 0
             strContact = L_CONTACT[i].export_contact().replace(r'\n', '\r\n')
         print(strContact)
+    """
     pause_menu()
 
 def extract_info_google():
@@ -405,11 +450,11 @@ def extract_info_contact(type_fichier='GOOGLE'):
     """Extraction des informations à partir de type fichier"""
     erreur = False
     global L_COL_EXP_GOOGLE
-    if TYPE_FICHIER_GOOGLE == type_fichier:
+    if TYPE_FICHIER_GOOGLE == TYPE_FICHIER_SELECTIONNE:
         extract_info_google()
-    elif TYPE_FICHIER_CSV == type_fichier:
+    elif TYPE_FICHIER_CSV == TYPE_FICHIER_SELECTIONNE:
         extract_info_csv()
-    elif TYPE_FICHIER_SAMSUNG == type_fichier:
+    elif TYPE_FICHIER_SAMSUNG == TYPE_FICHIER_SELECTIONNE:
         extract_info_samsung()
     else:
         print("Extraction de type de fichier <"+type_fichier+"> non géré.")
@@ -468,14 +513,15 @@ def sauvegarde_contact_google(file_name, forceSave):
     if forceSave:
         print("Export de '"+str(len(L_CONTACT))+"' dans le fichier '"+file_name+"' réussi.")
 
-def menu_modifier_type_fichier(type_fichier_courant):
+def menu_modifier_type_fichier():
     """Menu pour modification du type de fichier"""
     sortir = 0
     commande = "-1"
+    global TYPE_FICHIER_SELECTIONNE
     while sortir == 0:
         cls()
         print(" :: Modification type fichier ::")
-        print(" Type fichier : " + type_fichier_courant)
+        print(" Type fichier : " + TYPE_FICHIER_SELECTIONNE)
         print("Liste commande :")
         print(" 1) "+TYPE_FICHIER_GOOGLE+".")
         print(" 2) "+TYPE_FICHIER_SAMSUNG+".")
@@ -485,21 +531,19 @@ def menu_modifier_type_fichier(type_fichier_courant):
         commande = input("Saisir votre commande...\n")
 
         if commande == "1":
-            type_fichier_courant = TYPE_FICHIER_GOOGLE
+            TYPE_FICHIER_SELECTIONNE = TYPE_FICHIER_GOOGLE
             sortir = 1
         elif commande == "2":
-            type_fichier_courant = TYPE_FICHIER_SAMSUNG
+            TYPE_FICHIER_SELECTIONNE = TYPE_FICHIER_SAMSUNG
             sortir = 1
         elif commande == "3":
-            type_fichier_courant = TYPE_FICHIER_CSV
+            TYPE_FICHIER_SELECTIONNE = TYPE_FICHIER_CSV
             sortir = 1
         elif commande == "0":
             sortir = 1
         else:
             print("Saisie ("+str(commande)+") invalide.")
             pause_menu()
-
-    return type_fichier_courant
 
 def sauvegarde_contact(type_fichier_courant=TYPE_FICHIER_GOOGLE, file_name=DEFAULT_FILE_NAME_SAVED, forceSave=False):
     """Sauvegarde des contacts dans un fichier
@@ -512,7 +556,7 @@ def sauvegarde_contact(type_fichier_courant=TYPE_FICHIER_GOOGLE, file_name=DEFAU
         if not forceSave:
             print(" :: Sauvegarde des contacts ::")
             print(" Fichier destination : " + file_name)
-            print(" Type fichier : " + type_fichier_courant)
+            print(" Type fichier à sauvegarder : " + type_fichier_courant)
             print("Liste commande :")
             print(" 1) Saisir nom fichier.")
             print(" 2) Sauvegarder.")
@@ -674,12 +718,11 @@ def print_usage(erreur=""):
 def affiche_menu_gestion_fichier():
     sortir = 0
     global NOM_FICHIER_SOURCE
-    type_fichier_courant = TYPE_FICHIER_GOOGLE
     while sortir == 0:
         cls()
         print(" :: Gestion des contacts ::")
         print(" Fichier en cours : " + NOM_FICHIER_SOURCE)
-        print(" Type fichier : " + type_fichier_courant)
+        print(" Type fichier : " + TYPE_FICHIER_SELECTIONNE)
         print(" Nb contact présent : " + str(len(L_CONTACT)))
         print("Liste commande :")
         print(" 1) Saisir nom fichier.")
@@ -698,9 +741,9 @@ def affiche_menu_gestion_fichier():
                                                                 ('txt files', '.txt'),
                                                                 ('all files', '.*')])
         elif commande_saisie == "2":
-            type_fichier_courant = menu_modifier_type_fichier(type_fichier_courant)
+            menu_modifier_type_fichier()
         elif commande_saisie == "3":
-            extract_info_contact(type_fichier_courant)
+            extract_info_contact()
         elif commande_saisie == "4":
             sauvegarde_contact()
         else:
@@ -709,12 +752,11 @@ def affiche_menu_gestion_fichier():
 
 def affiche_menu_gestion_contact():
     sortir = 0
-    type_fichier_courant = TYPE_FICHIER_GOOGLE
     while sortir == 0:
         cls()
         print(" :: Gestion des contacts ::")
         print(" Fichier en cours : " + NOM_FICHIER_SOURCE)
-        print(" Type fichier : " + type_fichier_courant)
+        print(" Type fichier : " + TYPE_FICHIER_SELECTIONNE)
         print(" Nb contact présent : " + str(len(L_CONTACT)))
         print("Liste commande :")
         print(" 1) Saisir un contact (TODO).")
@@ -738,12 +780,11 @@ def affiche_menu_gestion_contact():
 
 def affiche_menu_principal():
     sortir = 0
-    type_fichier_courant = TYPE_FICHIER_GOOGLE
     while sortir == 0:
         cls()
         print(" :: Gestion des contacts ::")
         print(" Fichier en cours : " + NOM_FICHIER_SOURCE)
-        print(" Type fichier : " + type_fichier_courant)
+        print(" Type fichier : " + TYPE_FICHIER_SELECTIONNE)
         print(" Nb contact présent : " + str(len(L_CONTACT)))
         if 0 != len(L_COL_EXP_GOOGLE):
             print("   Nb col Google : " + str(len(L_COL_EXP_GOOGLE)))
@@ -802,6 +843,9 @@ def main(argv):
     localPath = os_path.abspath(os_path.split(__file__)[0])
     global NOM_FICHIER_SOURCE
     NOM_FICHIER_SOURCE = str(localPath + "/google.csv")
+    if not os.path.isfile(NOM_FICHIER_SOURCE):
+        print("Le fichier '"+NOM_FICHIER_SOURCE+"' n'existe pas. Lancement application impossible.")
+        exit(-1)
     extract_info_contact(TYPE_FICHIER_GOOGLE)
     if len(argv) < 1:
         affiche_menu_principal()
