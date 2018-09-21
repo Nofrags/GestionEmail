@@ -388,7 +388,6 @@ def extract_info_samsung(file_name):
                 for nom_colonne in info_ligne:
                     nom_colonne = nom_colonne.replace('"', '')
                     liste_colonne_samsung.append(nom_colonne)
-                print(str(liste_colonne_samsung))
             else:
                 if extract_info_ligne_samsung(info_ligne, liste_colonne_samsung) is False:
                     print("Erreur import ligne <"+num_ligne+"> fichier <"+file_name+">")
@@ -671,14 +670,14 @@ def affiche_menu_gestion_fichier(nom_fichier_courant, google_colonnes):
     while sortir == 0:
         cls()
         print(" :: Gestion des contacts ::")
-        print(" Fichier en cours : " + c)
+        print(" Fichier en cours : " + nom_fichier_courant)
         print(" Type fichier : " + type_fichier_courant)
         print(" Nb contact présent : " + str(len(L_CONTACT)))
         print("Liste commande :")
         print(" 1) Saisir nom fichier.")
-        print(" 2) Charger fichier.")
-        print(" 3) Sauvegarder fichier contact.")
-        print(" 4) Modifier type fichier.")
+        print(" 2) Modifier type fichier.")
+        print(" 3) Charger fichier.")
+        print(" 4) Sauvegarder fichier contact.")
         print("")
         print(" 0) sortir du programme.")
         commande_saisie = input("Saisir votre commande...\n")
@@ -691,11 +690,14 @@ def affiche_menu_gestion_fichier(nom_fichier_courant, google_colonnes):
                                                                 ('txt files', '.txt'),
                                                                 ('all files', '.*')])
         elif commande_saisie == "2":
-            google_colonnes = extract_info_contact(nom_fichier_courant, google_colonnes, type_fichier_courant)
-        elif commande_saisie == "3":
-            sauvegarde_contact()
-        elif commande_saisie == "4":
             type_fichier_courant = menu_modifier_type_fichier(type_fichier_courant)
+        elif commande_saisie == "3":
+            google_colonnes = extract_info_contact(nom_fichier_courant, google_colonnes, type_fichier_courant)
+        elif commande_saisie == "4":
+            sauvegarde_contact()
+        else:
+            print("Commande " + commande_saisie + " non gérée.")
+            pause_menu()
 
 def affiche_menu_gestion_contact(nom_fichier_courant):
     sortir = 0
@@ -749,7 +751,7 @@ def affiche_menu_principal(nom_fichier_courant, google_colonnes):
             affiche_menu_gestion_fichier(nom_fichier_courant, google_colonnes)
         elif commande_saisie == "2":
             affiche_menu_gestion_contact(nom_fichier_courant)
-s
+
 def traitemente_argument(argv, google_colonnes):
     """arg_erreur = 0"""
     map_argument = {}
