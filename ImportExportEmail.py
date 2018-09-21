@@ -547,7 +547,9 @@ def traiter_liste_tel(num_tel):
             if tel[0] == "0":
                 tel = tel[1:]
             tel = tel.replace('.', '').replace(' ', '')
-            tel = "+33" + tel
+            # Ajout +33 si pas numéro court
+            if 8 <= len(tel):
+                tel = "+33" + tel
             num_tel[index] = tel
         index += 1
     return num_tel
