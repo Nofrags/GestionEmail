@@ -665,50 +665,91 @@ def print_usage(erreur=""):
     if "" != erreur:
         print("\n\n  Erreur : '"+erreur+"'")
 
+def affiche_menu_gestion_fichier(nom_fichier_courant, google_colonnes):
+    sortir = 0
+    type_fichier_courant = TYPE_FICHIER_GOOGLE
+    while sortir == 0:
+        cls()
+        print(" :: Gestion des contacts ::")
+        print(" Fichier en cours : " + c)
+        print(" Type fichier : " + type_fichier_courant)
+        print(" Nb contact présent : " + str(len(L_CONTACT)))
+        print("Liste commande :")
+        print(" 1) Saisir nom fichier.")
+        print(" 2) Charger fichier.")
+        print(" 3) Sauvegarder fichier contact.")
+        print(" 4) Modifier type fichier.")
+        print("")
+        print(" 0) sortir du programme.")
+        commande_saisie = input("Saisir votre commande...\n")
+
+        if commande_saisie == "0":
+            sortir = 1
+        elif commande_saisie == "1":
+            nom_fichier_courant = askopenfilename(title="Ouvrir votre document",
+                                                    filetypes=[('csv files', '.csv'),
+                                                                ('txt files', '.txt'),
+                                                                ('all files', '.*')])
+        elif commande_saisie == "2":
+            google_colonnes = extract_info_contact(nom_fichier_courant, google_colonnes, type_fichier_courant)
+        elif commande_saisie == "3":
+            sauvegarde_contact()
+        elif commande_saisie == "4":
+            type_fichier_courant = menu_modifier_type_fichier(type_fichier_courant)
+
+def affiche_menu_gestion_contact(nom_fichier_courant):
+    sortir = 0
+    type_fichier_courant = TYPE_FICHIER_GOOGLE
+    while sortir == 0:
+        cls()
+        print(" :: Gestion des contacts ::")
+        print(" Fichier en cours : " + nom_fichier_courant)
+        print(" Type fichier : " + type_fichier_courant)
+        print(" Nb contact présent : " + str(len(L_CONTACT)))
+        print("Liste commande :")
+        print(" 1) Saisir un contact (TODO).")
+        print(" 2) Liste contact.")
+        print(" 3) Modifier contact.")
+        print(" 4) Vider les contacts.")
+        print("")
+        print(" 0) sortir du programme.")
+        commande_saisie = input("Saisir votre commande...\n")
+
+        if commande_saisie == "0":
+            sortir = 1
+        elif commande_saisie == "1":
+            print("TODO")
+        elif commande_saisie == "2":
+            print_contact()
+        elif commande_saisie == "3":
+            menu_modifier_contact()
+        elif commande_saisie == "4":
+            L_CONTACT.clear()
+
 def affiche_menu_principal(nom_fichier_courant, google_colonnes):
     sortir = 0
     type_fichier_courant = TYPE_FICHIER_GOOGLE
     while sortir == 0:
-            cls()
-            print(" :: Gestion des contacts ::")
-            print(" Fichier en cours : " + nom_fichier_courant)
-            print(" Type fichier : " + type_fichier_courant)
-            print(" Nb contact présent : " + str(len(L_CONTACT)))
-            print("Liste commande :")
-            print(" 1) Saisir nom fichier.")
-            print(" 2) Charger fichier.")
-            print(" 3) Saisir un contact (TODO).")
-            print(" 4) Sauvegarder fichier contact.")
-            print(" 5) Liste contact.")
-            print(" 6) Modifier contact.")
-            print(" 7) Modifier type fichier.")
-            print(" 8) Vider les contacts.")
-            print("")
-            print(" 0) sortir du programme.")
-            commande_saisie = input("Saisir votre commande...\n")
+        cls()
+        print(" :: Gestion des contacts ::")
+        print(" Fichier en cours : " + nom_fichier_courant)
+        print(" Type fichier : " + type_fichier_courant)
+        print(" Nb contact présent : " + str(len(L_CONTACT)))
+        print("Liste commande :")
+        print(" 1) Gestion fichier.")
+        if 0 != len(L_CONTACT):
+            print(" 2) Gestion contact.")
+        print("")
+        print(" 0) sortir du programme.")
+        commande_saisie = input("Saisir votre commande...\n")
 
-            if commande_saisie == "0":
-                sortir = 1
-            elif commande_saisie == "1":
-                nom_fichier_courant = askopenfilename(title="Ouvrir votre document",
-                                                      filetypes=[('csv files', '.csv'),
-                                                                 ('txt files', '.txt'),
-                                                                 ('all files', '.*')])
-            elif commande_saisie == "2":
-                google_colonnes = extract_info_contact(nom_fichier_courant, google_colonnes, type_fichier_courant)
-            elif commande_saisie == "3":
-                print("TODO")
-            elif commande_saisie == "4":
-                sauvegarde_contact()
-            elif commande_saisie == "5":
-                print_contact()
-            elif commande_saisie == "6":
-                menu_modifier_contact()
-            elif commande_saisie == "7":
-                type_fichier_courant = menu_modifier_type_fichier(type_fichier_courant)
-            elif commande_saisie == "8":
-                L_CONTACT.clear()
-
+        if commande_saisie == "0":
+            sortir = 1
+        elif commande_saisie == "1":
+            affiche_menu_gestion_fichier(nom_fichier_courant, google_colonnes)
+        elif commande_saisie == "2":
+            affiche_menu_gestion_contact(nom_fichier_courant)
+s
 def traitemente_argument(argv, google_colonnes):
     """arg_erreur = 0"""
     map_argument = {}
