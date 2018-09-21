@@ -362,8 +362,8 @@ def extract_info_ligne_samsung(info_ligne, liste_colonne_samsung):
         if reg_email.search(nom_colonne) and info_ligne[i+1].strip().replace('"', '') != "":
             liste_email.append(info_ligne[i+1].strip().replace('"', ''))
             nb_email += 1
-        if reg_telephone.search(nom_colonne) and info_ligne[i+1].strip().replace('"', '') != "":
-            liste_tel.append(info_ligne[i+1].strip().replace('"', ''))
+        if reg_telephone.search(nom_colonne) and info_ligne[i+1].strip().replace('"', '').replace(' ', '') != "":
+            liste_tel.append(info_ligne[i+1].strip().replace('"', '').replace(' ', ''))
             nb_telephone += 1
         if reg_nom.search(nom_colonne):
             infos_contact = info_ligne[i].strip().replace('"', '').split(' ')
@@ -621,7 +621,12 @@ class Contact:
                 is_ajoutcolonne = 1
         if is_ajoutcolonne == 1:
             return ""
-        liste_info[L_COL_EXP_GOOGLE.index(NAME_COLONNE_NAME)] = self.prenom + " " + self.nom
+        if "" == self.prenom:
+            liste_info[L_COL_EXP_GOOGLE.index(NAME_COLONNE_NAME)] = self.nom
+        elif "" == self.nom:
+            liste_info[L_COL_EXP_GOOGLE.index(NAME_COLONNE_NAME)] = self.prenom
+        else:
+            liste_info[L_COL_EXP_GOOGLE.index(NAME_COLONNE_NAME)] = self.prenom + " " + self.nom
         liste_info[L_COL_EXP_GOOGLE.index(NAME_COLONNE_FAMILY_NAME)] = self.nom
         liste_info[L_COL_EXP_GOOGLE.index(NAME_COLONNE_GIVEN_NAME)] = self.prenom
         if GROUPE_DEFAULT_NAME not in self.groupe:
