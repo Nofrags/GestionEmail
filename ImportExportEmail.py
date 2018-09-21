@@ -709,6 +709,38 @@ def affiche_menu_principal(nom_fichier_courant, google_colonnes):
             elif commande_saisie == "8":
                 L_CONTACT.clear()
 
+def traitemente_argument(argv, google_colonnes):
+    """arg_erreur = 0"""
+    map_argument = {}
+    for type_arg in MAP_ARG_APPLI.keys():
+        for option in MAP_ARG_APPLI[type_arg]:
+            if option in argv and len(argv) > argv.index(option) +1:
+                print(str(argv) + " nb arg " + str(len(argv)) + " idx " + str(argv.index(option)))
+                map_argument[type_arg] = argv[argv.index(option)+1]
+    if (TYPE_ARG_INPUT_TYPE in map_argument.keys() and TYPE_ARG_INPUT_FILE in map_argument.keys()
+    and TYPE_ARG_OUTPUT_TYPE in map_argument.keys() ) :
+        fileOutputName = ""
+        if map_argument[TYPE_ARG_INPUT_TYPE] not in LISTE_TYPE_FICHIER:
+            print_usage("Le type de fichier à importer '" + map_argument[TYPE_ARG_INPUT_TYPE] + "' n'est pas correct.")
+            exit(-1)
+        if map_argument[TYPE_ARG_OUTPUT_TYPE] not in LISTE_TYPE_FICHIER:
+            print_usage("Le type de fichier à générer '" + map_argument[TYPE_ARG_OUTPUT_TYPE] + "' n'est pas correct.")
+            exit(-1)
+        if not os.path.isfile(map_argument[TYPE_ARG_INPUT_FILE]):
+            print_usage("Le fichier '" + map_argument[TYPE_ARG_INPUT_FILE] + "' n'existe pas. Import impossible.")
+            exit(-2)
+        if not os.path.isdir(os.path.dirname(map_argument[TYPE_ARG_OUTPUT_FILE])):
+            print("Le fichier '" + map_argument[TYPE_ARG_OUTPUT_FILE] + "' n'existe pas. Utilisation du fichier par défaut : "+FILE_SAVE_LOCAL+".")
+            fileOutputName = os.path.dirname(sys.argv[0]) + "/" + FILE_SAVE_LOCAL
+        else:
+            fileOutputName = map_argument[TYPE_ARG_OUTPUT_FILE]
+        google_colonnes = extract_info_contact(map_argument[TYPE_ARG_INPUT_FILE], google_colonnes, map_argument[TYPE_ARG_INPUT_TYPE])
+        sauvegarde_contact(map_argument[TYPE_ARG_OUTPUT_TYPE], fileOutputName, True)
+    elif TYPE_ARG_HELP:
+        print_usage()
+    else:
+        print_usage("Erreur argument:" + str(argv) + " argumment présent : " + str(map_argument))
+
 def main(argv, google_colonnes):
     """Gestion des contacts pour import dans Gmail"""
     if os.path.isfile(FILE_SAVE_LOCAL):
@@ -723,36 +755,7 @@ def main(argv, google_colonnes):
     if len(argv) < 1:
         affiche_menu_principal(nom_fichier_courant, google_colonnes)
     else: # Si argument à la commande
-        """arg_erreur = 0"""
-        map_argument = {}
-        for type_arg in MAP_ARG_APPLI.keys():
-            for option in MAP_ARG_APPLI[type_arg]:
-                if option in argv and len(argv) > argv.index(option) +1:
-                    print(str(argv) + " nb arg " + str(len(argv)) + " idx " + str(argv.index(option)))
-                    map_argument[type_arg] = argv[argv.index(option)+1]
-        if (TYPE_ARG_INPUT_TYPE in map_argument.keys() and TYPE_ARG_INPUT_FILE in map_argument.keys()
-        and TYPE_ARG_OUTPUT_TYPE in map_argument.keys() ) :
-            fileOutputName = ""
-            if map_argument[TYPE_ARG_INPUT_TYPE] not in LISTE_TYPE_FICHIER:
-                print_usage("Le type de fichier à importer '" + map_argument[TYPE_ARG_INPUT_TYPE] + "' n'est pas correct.")
-                exit(-1)
-            if map_argument[TYPE_ARG_OUTPUT_TYPE] not in LISTE_TYPE_FICHIER:
-                print_usage("Le type de fichier à générer '" + map_argument[TYPE_ARG_OUTPUT_TYPE] + "' n'est pas correct.")
-                exit(-1)
-            if not os.path.isfile(map_argument[TYPE_ARG_INPUT_FILE]):
-                print_usage("Le fichier '" + map_argument[TYPE_ARG_INPUT_FILE] + "' n'existe pas. Import impossible.")
-                exit(-2)
-            if not os.path.isdir(os.path.dirname(map_argument[TYPE_ARG_OUTPUT_FILE])):
-                print("Le fichier '" + map_argument[TYPE_ARG_OUTPUT_FILE] + "' n'existe pas. Utilisation du fichier par défaut : "+FILE_SAVE_LOCAL+".")
-                fileOutputName = os.path.dirname(sys.argv[0]) + "/" + FILE_SAVE_LOCAL
-            else:
-                fileOutputName = map_argument[TYPE_ARG_OUTPUT_FILE]
-            google_colonnes = extract_info_contact(map_argument[TYPE_ARG_INPUT_FILE], google_colonnes, map_argument[TYPE_ARG_INPUT_TYPE])
-            sauvegarde_contact(map_argument[TYPE_ARG_OUTPUT_TYPE], fileOutputName, True)
-        elif TYPE_ARG_HELP:
-            print_usage()
-        else:
-            print_usage("Erreur argument:" + str(argv) + " argumment présent : " + str(map_argument))
+        traitemente_argument(argv, google_colonnes)
 
 if __name__ == '__main__':
     main(sys.argv[1:], L_COL_EXP_GOOGLE)
