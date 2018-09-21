@@ -377,7 +377,7 @@ def extract_info_samsung(file_name):
     info_ligne = []
     num_ligne = 1
     liste_colonne_samsung = []
-    with codecs.open(file_name, mode='r', encoding='utf16') as fichier:
+    with codecs.open(file_name, mode='r') as fichier:
         lignes = fichier.readlines()
         for ligne in lignes:
             if '\r' in ligne:
@@ -566,6 +566,10 @@ class Contact:
             email = []
         if num_tel is None:
             num_tel = []
+        if 0 == len(infos):
+            print("Impossible de créer le contact. Aucune information disponible.")
+        elif 1 == len(infos):
+            infos.append("")
         self.nom = infos[0]
         self.prenom = infos[1]
         self.email = email
