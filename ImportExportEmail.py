@@ -42,8 +42,10 @@ L_COL_EXP_GOOGLE = [NAME_COLONNE_NAME
                     , NAME_COLONNE_GIVEN_NAME
                     , NAME_COLONNE_FAMILY_NAME
                     , NAME_COLONNE_GROUP]
+L_INDEX_COL_GOOGLE_NOT_EMPTY = []
 L_CONTACT = []
 L_COL_EXP_SAMSUNG = []
+L_INDEX_COL_SAMSUNG_NOT_EMPTY = []
 TYPE_FICHIER_SELECTIONNE = TYPE_FICHIER_GOOGLE
 
 NOM_FICHIER_SOURCE = ""
@@ -67,38 +69,42 @@ class TkTable(Frame):
         Frame.__init__(self, fenetre) 
         self.numberLines = len(L_CONTACT)
         if TYPE_FICHIER_SELECTIONNE == TYPE_FICHIER_GOOGLE:
-            self.numberColumns = len(L_COL_EXP_GOOGLE)
+            self.listeColumns = L_COL_EXP_GOOGLE
+            self.listeIndexColumns = L_INDEX_COL_GOOGLE_NOT_EMPTY
         elif TYPE_FICHIER_SELECTIONNE == TYPE_FICHIER_SAMSUNG:
-            self.numberColumns = len(L_COL_EXP_SAMSUNG)
+            self.listeColumns = L_COL_EXP_SAMSUNG
+            self.listeIndexColumns = L_INDEX_COL_SAMSUNG_NOT_EMPTY
         else:
             return
         self.pack(fill=BOTH) 
         self.data = list() 
-        for i in range(self.numberLines): 
-            line = list() 
-            for j in range(self.numberColumns): 
+        line = list()
+        for i in range(len(self.listeIndexColumns)): 
+            cell = Entry(self) 
+            cell.insert(0, self.listeColumns[self.listeColumns[i]]) 
+            line.append(cell) 
+            cell.grid(0, column = i)
+            self.data.append(line)
+        for i in range(1, self.numberLines): 
+            line.clear()
+            for j in range(len(self.listeIndexColumns)): 
                 cell = Entry(self) 
-                cell.insert(0, 0) 
+                cell.insert(0, self.extract_info_contact(i, j)) 
                 line.append(cell) 
                 cell.grid(row = i, column = j) 
             self.data.append(line) 
   
-        self.results = list() 
-        for i in range(self.numberColumns): 
-            cell = Entry(self) 
-            cell.insert(0, 0) 
-            cell.grid(row = self.numberLines, column = i) 
-            self.results.append(cell) 
         self.buttonSum =  Button(self, text="somme des colonnes", fg="red", command=self.sumCol) 
-        self.buttonSum.grid(row = self.numberLines, column = self.numberColumns) 
+        self.buttonSum.grid(row = self.numberLines, column = len(self.listeIndexColumns)) 
   
     def sumCol(self): 
-        for j in range(self.numberColumns): 
+        for j in range(len(self.listeIndexColumns)): 
             result = int(0) 
             for i in range(self.numberLines): 
-                result += int(self.data[i][j].get()) 
-            self.results[j].delete(0, END) 
-            self.results[j].insert(0, result)
+                result += int(self.data[i][j].get())
+
+    def extract_info_contact(self, idxContact, idxColonne):
+        return ""
 
 def menu_modification_groupe(contact):
     """Modification du(des) groupe(s) du contact"""
@@ -238,6 +244,7 @@ def extract_info_google():
     info_ligne = []
     num_ligne = 1
     global L_COL_EXP_GOOGLE
+    global L_INDEX_COL_GOOGLE_NOT_EMPTY
     if os.path.isfile(NOM_FICHIER_SOURCE):
         with codecs.open(NOM_FICHIER_SOURCE, "r", "utf16") as fichier:
             lignes = fichier.readlines()
@@ -260,6 +267,8 @@ def extract_info_google():
                             groupe_trouve = groupes[:index-1]
                             liste_groupe.append(groupe_trouve)
                             groupes = groupes[index+4:]
+                            if L_COL_EXP_GOOGLE.index(NAME_COLONNE_GROUP) not in L_INDEX_COL_GOOGLE_NOT_EMPTY:
+                                L_INDEX_COL_GOOGLE_NOT_EMPTY.append(L_COL_EXP_GOOGLE.index(NAME_COLONNE_GROUP))
                         # Récupération du dernier groupe de la liste
                         liste_groupe.append(groupes)
                         # Récupération des emails
@@ -267,7 +276,11 @@ def extract_info_google():
                         # Récupération des telephones
                         liste_tel = extract_tel(info_ligne)
                         index_col_family = L_COL_EXP_GOOGLE.index(NAME_COLONNE_FAMILY_NAME)
+                        if info_ligne[index_col_family] != '':
+                            L_INDEX_COL_GOOGLE_NOT_EMPTY.append(L_COL_EXP_GOOGLE.index(NAME_COLONNE_FAMILY_NAME))
                         index_col_given_name = L_COL_EXP_GOOGLE.index(NAME_COLONNE_GIVEN_NAME)
+                        if info_ligne[index_col_given_name] != '':
+                            L_INDEX_COL_GOOGLE_NOT_EMPTY.append(L_COL_EXP_GOOGLE.index(NAME_COLONNE_GIVEN_NAME))
                         infos_contact = [info_ligne[index_col_family], info_ligne[index_col_given_name]]
                         L_CONTACT.append(Contact(infos=infos_contact,
                                                 email=liste_email,
@@ -284,11 +297,13 @@ def extract_email(info_ligne):
     regexp = re.compile(r'E-mail \d* - Value')
     num_col = 0
     liste_email = []
+    global L_INDEX_COL_GOOGLE_NOT_EMPTY
     for nom_colonne in L_COL_EXP_GOOGLE:
         if num_col > len(info_ligne):
             break
         if regexp.search(nom_colonne) and info_ligne[num_col] != '':
             liste_email.append(info_ligne[num_col])
+            L_INDEX_COL_GOOGLE_NOT_EMPTY.append(L_COL_EXP_GOOGLE.index(nom_colonne))
         num_col += 1
     return liste_email
 
@@ -297,11 +312,13 @@ def extract_tel(info_ligne):
     regexp = re.compile(r'Phone \d* - Value')
     num_col = 0
     liste_tel = []
+    global L_INDEX_COL_GOOGLE_NOT_EMPTY
     for nom_colonne in L_COL_EXP_GOOGLE:
         if num_col > len(info_ligne):
             break
         if regexp.search(nom_colonne) and info_ligne[num_col] != '':
             liste_tel.append(info_ligne[num_col])
+            L_INDEX_COL_GOOGLE_NOT_EMPTY.append(L_COL_EXP_GOOGLE.index(nom_colonne))
         num_col += 1
     return liste_tel
 
