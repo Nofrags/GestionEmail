@@ -423,16 +423,23 @@ def extract_info_ligne_samsung(info_ligne):
     infos_contact = []
     nb_email = 0
     nb_telephone = 0
+    global L_INDEX_COL_SAMSUNG_NOT_EMPTY
     for i in range(0, len(L_COL_EXP_SAMSUNG)):
         nom_colonne = L_COL_EXP_SAMSUNG[i]
         if reg_email.search(nom_colonne) and info_ligne[i+1].strip().replace('"', '') != "":
             liste_email.append(info_ligne[i+1].strip().replace('"', ''))
             nb_email += 1
+            if i not in L_INDEX_COL_SAMSUNG_NOT_EMPTY:
+                L_INDEX_COL_SAMSUNG_NOT_EMPTY.append(i)
         if reg_telephone.search(nom_colonne) and info_ligne[i+1].strip().replace('"', '').replace(' ', '') != "":
             liste_tel.append(info_ligne[i+1].strip().replace('"', '').replace(' ', ''))
             nb_telephone += 1
+            if i not in L_INDEX_COL_SAMSUNG_NOT_EMPTY:
+                L_INDEX_COL_SAMSUNG_NOT_EMPTY.append(i)
         if reg_nom.search(nom_colonne):
             infos_contact = info_ligne[i].strip().replace('"', '').split(' ')
+            if i not in L_INDEX_COL_SAMSUNG_NOT_EMPTY:
+                L_INDEX_COL_SAMSUNG_NOT_EMPTY.append(i)
     L_CONTACT.append(Contact(infos=infos_contact,
                              num_tel=liste_tel,
                              email=liste_email))
