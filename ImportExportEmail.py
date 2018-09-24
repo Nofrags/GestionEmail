@@ -42,10 +42,8 @@ L_COL_EXP_GOOGLE = [NAME_COLONNE_NAME
                     , NAME_COLONNE_GIVEN_NAME
                     , NAME_COLONNE_FAMILY_NAME
                     , NAME_COLONNE_GROUP]
-L_INDEX_COL_GOOGLE_NOT_EMPTY = []
 L_CONTACT = []
 L_COL_EXP_SAMSUNG = []
-L_INDEX_COL_SAMSUNG_NOT_EMPTY = []
 TYPE_FICHIER_SELECTIONNE = TYPE_FICHIER_GOOGLE
 
 NOM_FICHIER_SOURCE = ""
@@ -68,43 +66,51 @@ class TkTable(Frame):
     def __init__(self, fenetre): 
         Frame.__init__(self, fenetre) 
         self.numberLines = len(L_CONTACT)
-        if TYPE_FICHIER_SELECTIONNE == TYPE_FICHIER_GOOGLE:
-            self.listeColumns = L_COL_EXP_GOOGLE
-            self.listeIndexColumns = L_INDEX_COL_GOOGLE_NOT_EMPTY
-        elif TYPE_FICHIER_SELECTIONNE == TYPE_FICHIER_SAMSUNG:
-            self.listeColumns = L_COL_EXP_SAMSUNG
-            self.listeIndexColumns = L_INDEX_COL_SAMSUNG_NOT_EMPTY
-        else:
+        if (0 == self.numberLines):
+            print("Aucun contact à afficher.")
             return
+        self.listeColumns = ["Nom", "Prenom", "Groupe", "Email", "Entreprise"]
         self.pack(fill=BOTH) 
         self.data = list() 
         line = list()
-        for i in range(len(self.listeIndexColumns)): 
+        for i in range(len(self.listeColumns)): 
             cell = Entry(self) 
-            cell.insert(0, self.listeColumns[self.listeColumns[i]]) 
+            cell.insert(0, self.listeColumns[i]) 
             line.append(cell) 
-            cell.grid(0, column = i)
+            cell.grid(row = 0, column = i)
             self.data.append(line)
-        for i in range(1, self.numberLines): 
+        for i in range(1, self.numberLines+1): 
             line.clear()
-            for j in range(len(self.listeIndexColumns)): 
+            for j in range(len(self.listeColumns)): 
                 cell = Entry(self) 
-                cell.insert(0, self.extract_info_contact(i, j)) 
+                cell.insert(0, self.extract_info_contact(i-1, j)) 
                 line.append(cell) 
                 cell.grid(row = i, column = j) 
             self.data.append(line) 
   
-        self.buttonSum =  Button(self, text="somme des colonnes", fg="red", command=self.sumCol) 
-        self.buttonSum.grid(row = self.numberLines, column = len(self.listeIndexColumns)) 
+        self.buttonSum =  Button(self, text="Save change", fg="red", command=self.saveModif) 
+        self.buttonSum.grid(row = 0, column = len(self.listeColumns)) 
   
-    def sumCol(self): 
-        for j in range(len(self.listeIndexColumns)): 
-            result = int(0) 
-            for i in range(self.numberLines): 
-                result += int(self.data[i][j].get())
+    def saveModif(self): 
+        print("TODO")
 
     def extract_info_contact(self, idxContact, idxColonne):
-        return ""
+        if (len(L_CONTACT) >= idxContact):
+            contact = L_CONTACT[idxContact]
+            if 0 == idxColonne: # Nom
+                return contact.nom
+            elif 1 == idxColonne: # Prénom
+                return contact.prenom
+            elif 2 == idxColonne: # Groupe
+                return ", ".join(contact.groupe)
+            elif 3 == idxColonne: # Email
+                return ", ".join(contact.email)
+            elif 4 == idxColonne: # Entreprise
+                return contact.entreprise
+        return str(idxColonne) + " non géré"
+
+    def nbColonne(self):
+        return self.nbColonne
 
 def menu_modification_groupe(contact):
     """Modification du(des) groupe(s) du contact"""
@@ -225,26 +231,16 @@ def cls():
 def print_contact():
     """Affichage des contacts en mémoire"""
     fenetre = Tk() 
-    interface = TkTable(fenetre) 
+    interface = TkTable(fenetre)
+    if (0 == interface.nbColonne()):
+        return
     interface.mainloop()
-    """
-    strContact = ""
-    for i in range(0,len(L_CONTACT)):
-        strContact = L_CONTACT[i].export_contact().replace(r'\n', '\r\n')
-        if "" == strContact:
-            cls()
-            i = 0
-            strContact = L_CONTACT[i].export_contact().replace(r'\n', '\r\n')
-        print(strContact)
-    """
-    pause_menu()
 
 def extract_info_google():
     """Extraction des contacts à partir de l'export GOOGLE"""
     info_ligne = []
     num_ligne = 1
     global L_COL_EXP_GOOGLE
-    global L_INDEX_COL_GOOGLE_NOT_EMPTY
     if os.path.isfile(NOM_FICHIER_SOURCE):
         with codecs.open(NOM_FICHIER_SOURCE, "r", "utf16") as fichier:
             lignes = fichier.readlines()
@@ -267,8 +263,6 @@ def extract_info_google():
                             groupe_trouve = groupes[:index-1]
                             liste_groupe.append(groupe_trouve)
                             groupes = groupes[index+4:]
-                            if L_COL_EXP_GOOGLE.index(NAME_COLONNE_GROUP) not in L_INDEX_COL_GOOGLE_NOT_EMPTY:
-                                L_INDEX_COL_GOOGLE_NOT_EMPTY.append(L_COL_EXP_GOOGLE.index(NAME_COLONNE_GROUP))
                         # Récupération du dernier groupe de la liste
                         liste_groupe.append(groupes)
                         # Récupération des emails
@@ -276,11 +270,7 @@ def extract_info_google():
                         # Récupération des telephones
                         liste_tel = extract_tel(info_ligne)
                         index_col_family = L_COL_EXP_GOOGLE.index(NAME_COLONNE_FAMILY_NAME)
-                        if info_ligne[index_col_family] != '':
-                            L_INDEX_COL_GOOGLE_NOT_EMPTY.append(L_COL_EXP_GOOGLE.index(NAME_COLONNE_FAMILY_NAME))
                         index_col_given_name = L_COL_EXP_GOOGLE.index(NAME_COLONNE_GIVEN_NAME)
-                        if info_ligne[index_col_given_name] != '':
-                            L_INDEX_COL_GOOGLE_NOT_EMPTY.append(L_COL_EXP_GOOGLE.index(NAME_COLONNE_GIVEN_NAME))
                         infos_contact = [info_ligne[index_col_family], info_ligne[index_col_given_name]]
                         L_CONTACT.append(Contact(infos=infos_contact,
                                                 email=liste_email,
@@ -297,13 +287,11 @@ def extract_email(info_ligne):
     regexp = re.compile(r'E-mail \d* - Value')
     num_col = 0
     liste_email = []
-    global L_INDEX_COL_GOOGLE_NOT_EMPTY
     for nom_colonne in L_COL_EXP_GOOGLE:
         if num_col > len(info_ligne):
             break
         if regexp.search(nom_colonne) and info_ligne[num_col] != '':
             liste_email.append(info_ligne[num_col])
-            L_INDEX_COL_GOOGLE_NOT_EMPTY.append(L_COL_EXP_GOOGLE.index(nom_colonne))
         num_col += 1
     return liste_email
 
@@ -312,13 +300,11 @@ def extract_tel(info_ligne):
     regexp = re.compile(r'Phone \d* - Value')
     num_col = 0
     liste_tel = []
-    global L_INDEX_COL_GOOGLE_NOT_EMPTY
     for nom_colonne in L_COL_EXP_GOOGLE:
         if num_col > len(info_ligne):
             break
         if regexp.search(nom_colonne) and info_ligne[num_col] != '':
             liste_tel.append(info_ligne[num_col])
-            L_INDEX_COL_GOOGLE_NOT_EMPTY.append(L_COL_EXP_GOOGLE.index(nom_colonne))
         num_col += 1
     return liste_tel
 
@@ -423,23 +409,16 @@ def extract_info_ligne_samsung(info_ligne):
     infos_contact = []
     nb_email = 0
     nb_telephone = 0
-    global L_INDEX_COL_SAMSUNG_NOT_EMPTY
     for i in range(0, len(L_COL_EXP_SAMSUNG)):
         nom_colonne = L_COL_EXP_SAMSUNG[i]
         if reg_email.search(nom_colonne) and info_ligne[i+1].strip().replace('"', '') != "":
             liste_email.append(info_ligne[i+1].strip().replace('"', ''))
             nb_email += 1
-            if i not in L_INDEX_COL_SAMSUNG_NOT_EMPTY:
-                L_INDEX_COL_SAMSUNG_NOT_EMPTY.append(i)
         if reg_telephone.search(nom_colonne) and info_ligne[i+1].strip().replace('"', '').replace(' ', '') != "":
             liste_tel.append(info_ligne[i+1].strip().replace('"', '').replace(' ', ''))
             nb_telephone += 1
-            if i not in L_INDEX_COL_SAMSUNG_NOT_EMPTY:
-                L_INDEX_COL_SAMSUNG_NOT_EMPTY.append(i)
         if reg_nom.search(nom_colonne):
             infos_contact = info_ligne[i].strip().replace('"', '').split(' ')
-            if i not in L_INDEX_COL_SAMSUNG_NOT_EMPTY:
-                L_INDEX_COL_SAMSUNG_NOT_EMPTY.append(i)
     L_CONTACT.append(Contact(infos=infos_contact,
                              num_tel=liste_tel,
                              email=liste_email))
