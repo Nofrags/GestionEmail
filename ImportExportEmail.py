@@ -69,7 +69,7 @@ class TkTable(Frame):
         if (0 == self.numberLines):
             print("Aucun contact à afficher.")
             return
-        self.listeColumns = ["Nom", "Prenom", "Groupe", "Email", "Entreprise"]
+        self.listeColumns = ["Nom", "Prenom", "Groupe", "Email", "Entreprise", "Numéro"]
         self.pack(fill=BOTH) 
         self.data = list() 
         line = list()
@@ -78,9 +78,8 @@ class TkTable(Frame):
             cell.insert(0, self.listeColumns[i]) 
             line.append(cell) 
             cell.grid(row = 0, column = i)
-            self.data.append(line)
         for i in range(1, self.numberLines+1): 
-            line.clear()
+            line = list()
             for j in range(len(self.listeColumns)): 
                 cell = Entry(self) 
                 cell.insert(0, self.extract_info_contact(i-1, j)) 
@@ -88,11 +87,19 @@ class TkTable(Frame):
                 cell.grid(row = i, column = j) 
             self.data.append(line) 
   
-        self.buttonSum =  Button(self, text="Save change", fg="red", command=self.saveModif) 
-        self.buttonSum.grid(row = 0, column = len(self.listeColumns)) 
+        self.buttonSave = Button(self, text="Save change", fg="red", command=self.saveModif) 
+        self.buttonSave.grid(row = 0, column = len(self.listeColumns)) 
   
-    def saveModif(self): 
-        print("TODO")
+    def saveModif(self):
+        idxContact = 0 
+        for i in range(len(self.data)):
+            contact = L_CONTACT[idxContact]
+            contact.nom = self.data[i][0].get()
+            contact.prenom = self.data[i][1].get()
+            contact.groupe = self.data[i][2].get().split(", ")
+            contact.email = self.data[i][3].get().split(", ")
+            contact.entreprise = self.data[i][4].get()
+            idxContact += 1
 
     def extract_info_contact(self, idxContact, idxColonne):
         if (len(L_CONTACT) >= idxContact):
@@ -107,6 +114,8 @@ class TkTable(Frame):
                 return ", ".join(contact.email)
             elif 4 == idxColonne: # Entreprise
                 return contact.entreprise
+            elif 5 == idxColonne: # Numéro
+                return ", ".join(contact.num_tel)
         return str(idxColonne) + " non géré"
 
     def nbColonne(self):
@@ -564,7 +573,7 @@ def sauvegarde_contact(type_fichier_courant=TYPE_FICHIER_GOOGLE, file_name=DEFAU
             print(" 1) Saisir nom fichier.")
             print(" 2) Sauvegarder.")
             print("")
-            print(" 0) sortir du programme.")
+            print(" 0) Retour.")
             commande_saisie = input("Saisir votre commande...\n")
         else:
             commande_saisie = "2"
@@ -733,7 +742,7 @@ def affiche_menu_gestion_fichier():
         print(" 3) Charger fichier.")
         print(" 4) Sauvegarder fichier contact.")
         print("")
-        print(" 0) sortir du programme.")
+        print(" 0) Retour.")
         commande_saisie = input("Saisir votre commande...\n")
 
         if commande_saisie == "0":
@@ -767,7 +776,7 @@ def affiche_menu_gestion_contact():
         print(" 3) Modifier contact.")
         print(" 4) Vider les contacts.")
         print("")
-        print(" 0) sortir du programme.")
+        print(" 0) Retour.")
         commande_saisie = input("Saisir votre commande...\n")
 
         if commande_saisie == "0":
@@ -798,7 +807,7 @@ def affiche_menu_principal():
         if 0 != len(L_CONTACT):
             print(" 2) Gestion contact.")
         print("")
-        print(" 0) sortir du programme.")
+        print(" 0) Sortir du programme.")
         commande_saisie = input("Saisir votre commande...\n")
 
         if commande_saisie == "0":
