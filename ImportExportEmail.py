@@ -6,7 +6,7 @@ from os import path as os_path
 import sys
 import re
 from tkinter.filedialog import askopenfilename, asksaveasfilename
-from tkinter import Frame, BOTH, Entry, Button, END, Tk
+from tkinter import Frame, BOTH, Entry, Label, Button, END, Tk
 import subprocess
 
 GROUPE_DEFAULT_NAME = "* My Contacts"
@@ -72,12 +72,10 @@ class TkTable(Frame):
         self.listeColumns = ["Nom", "Prenom", "Groupe", "Email", "Entreprise", "Numéro"]
         self.pack(fill=BOTH) 
         self.data = list() 
-        line = list()
         for i in range(len(self.listeColumns)): 
-            cell = Entry(self) 
-            cell.insert(0, self.listeColumns[i]) 
-            line.append(cell) 
-            cell.grid(row = 0, column = i)
+            colonneName = Label(self, text=self.listeColumns[i])
+            colonneName.grid(row = 0, column = i)
+        line = list()
         for i in range(1, self.numberLines+1): 
             line = list()
             for j in range(len(self.listeColumns)): 
