@@ -233,7 +233,7 @@ def pause_menu():
 
 def cls():
     """Clear screen"""
-    os.system('cls')
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 def print_contact():
     """Affichage des contacts en mémoire"""
