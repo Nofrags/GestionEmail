@@ -855,7 +855,7 @@ def main(argv):
     NOM_FICHIER_SOURCE = str(localPath + "/google.csv")
     if not os.path.isfile(NOM_FICHIER_SOURCE):
         print("Le fichier '"+NOM_FICHIER_SOURCE+"' n'existe pas. Lancement application impossible.")
-        exit(-1)
+        return
     extract_info_contact(TYPE_FICHIER_GOOGLE)
     if len(argv) < 1:
         affiche_menu_principal()
