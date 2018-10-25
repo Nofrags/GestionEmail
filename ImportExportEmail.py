@@ -249,7 +249,7 @@ def extract_info_google():
     num_ligne = 1
     global L_COL_EXP_GOOGLE
     if os.path.isfile(NOM_FICHIER_SOURCE):
-        with codecs.open(NOM_FICHIER_SOURCE, "r", "utf16") as fichier:
+        with codecs.open(NOM_FICHIER_SOURCE, "r", "utf8") as fichier:
             lignes = fichier.readlines()
             for ligne in lignes:
                 if '\r' in ligne:
